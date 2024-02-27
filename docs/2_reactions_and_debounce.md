@@ -15,7 +15,7 @@ Suppose we want the circuit to behave as follows:
 
 As with the case of periodic tasks, a beginner's solution would involve using `delay()`, something like this in the `loop()` function:
 
-```
+```C
 void loop(){
 
   // execute if the button is pushed
@@ -47,7 +47,7 @@ Instead, let's implement the desired behavior using non-blocking loop based on `
 
 In that way, the `loop()` part of the code now looks like:
 
-```
+```C
 void loop() {
 
   // get the current time
@@ -102,7 +102,7 @@ As with periodic tasks, the `SimpleEvents` class also provides abstraction for r
 
 As before, we again need to put the code that execute on triggers into functions. But this time we also need to put the code that **check the trigger** into functions. So we need:
 
-```
+```C
 // function that check if the button is pressed
 bool check_button(){
 
@@ -134,7 +134,7 @@ Note that `check_button()` is **required** to **take no arguments** and **return
 
 Next, in the `setup()` part of the code, we register `turn_on_red()` to run immediately after button press, `switch_red_green()` to run 2000 milliseconds after button press, and `turn_off_green()` to run 4000 milliseconds after button press (recall that we need to put in the *function name*, without the parentheses):
 
-```
+```C
 void setup(){
   /*
    * More setup codes
@@ -168,7 +168,7 @@ In fact, the situation is even worse for the non-blocking codes. Specifically, i
 
 What we need here is an implementation of **debouncing**. Basically, you want to pause the button check for the duration of the LED cycle (4000 milliseconds). Thankfully, debouncing is built-in to the `SimpleEvents` class. Specifically, the third argument of `.addReaction()` (which so far we have set to `0`) specifies the duration of the debounce, so all we need to do is to change the `setup()` part of the code like so (note that the debounce duration is count from the time when *the trigger is pulled*, i.e., when the push button is pressed in this case):
 
-```
+```C
 void setup(){
   /*
    * More setup codes
@@ -199,7 +199,7 @@ In case you wonder how debouncing works without using `SimpleEvents`. The basic 
 
 In terms of code, all we have to do is to change the `if (digitalRead(BUTTON_PIN)==HIGH){...}` block in the "[reaction_by_hand.ino](../examples/reaction_by_hand/reaction_by_hand.ino)" to:
 
-```
+```C
 void loop(){
 
   // get the current time
