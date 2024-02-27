@@ -2,7 +2,7 @@
 
 Periodic tasks are fairly common in Arduino programming. For example, one may want to toggle an LED at 1 second interval. In beginner's code, this is often achieved using Arduino's `delay()` function. Concretely, the `loop()` function may looks like this:
 
-```
+```C
 void loop(){
   digitalWrite(LED_PIN, HIGH);
   delay(1000);
