@@ -26,7 +26,7 @@ You have seen example where the `SimpleEvents` instance manage multiple schedule
 
 So far in all our examples the `loop()` part of the Arduino sketch consists of a single statement:
 
-```
+```C
 void loop(){
     mainloop.run();
 }
@@ -46,7 +46,7 @@ Since a `SimpleEvents` instance can manage multiple schedules, you'll need to sp
 
 As a simple example, let's say you have a flashing LED managed by schedule #0, and you want the flashing to pause between `millis()` = 5000 and `millis()` = 10000. Then, the `loop()` portion of your Arduino sketch may looks like the following:
 
-```
+```C
 void loop() {
 
   // get the current time
@@ -79,7 +79,7 @@ where `to_pause` and `to_resume` are two global variables initialized to `true`.
 
 While instructive, the above example is not very useful. More often, you would want to implement pausing and resuming **on user input**, say through a push button. Given that a `SimpleEvents` instance can handle button push via `.addReaction()`, it suggests that we can handle the pausing and resuming of a the schedule **using a reaction**. What we need to do is to include `.pauseSchedule()` and `.resumeSchedule()` in the function that is called back on trigger, like so:
 
-```
+```C
 void toggle_schedule(){
 
   if (button_parity == 0){
@@ -107,7 +107,7 @@ void toggle_schedule(){
 
 where `button_parity` is a global variable initialized to `0`. We can then add the reaction and the schedule as usual:
 
-```
+```C
 void setup() {
 
   pinMode(GRN_PIN, OUTPUT);
@@ -151,7 +151,7 @@ To do so, we need a `SimpleEvents` instance with **four** reactions:
 + Reaction #3 turn off the green LED (callback = `turn_off_green()`).
 
 We need reaction #0 to be active **only** between the execution of reaction #1 and #3, so we need to modify `turn_on_red()` and `turn_off_green()` like so:
-```
+```C
 // function that turns the red LED on
 void turn_on_red(){
   digitalWrite(RED_PIN, HIGH);
@@ -175,7 +175,8 @@ void turn_off_green(){
 ```
 
 Also, when the button is pressed a second time, `turn_on_red()`, `switch_red_green()`, and `turn_off_green()` should be ready for trigger again, while `cancel_reset_LEDs()` should be off. So we need:
-```
+
+```C
 // function to cancel pending actions in the LED sequence, and reset the LEDs
 void cancel_reset_LEDs(){
     
@@ -205,20 +206,21 @@ void cancel_reset_LEDs(){
 
 For the full functioning code (which, among other things, defined `toggle_green()` and `check_button()`), see the "[cancel_reaction.ino](../examples/cancel_reaction/cancel_reaction.ino)" sketch.
 
-
 ## Serial debugging interface
 
 One common way to debug Arduino sketches is to print out debugging messages using the `Serial` interface. The `SimpleEvents` class have built-in support for that, and you just need to modify your sketch in two places.
 
 First, **before** you import the `simpleEvents.h` header file, make sure you add a line that `#define` a symbol called `SIMPLE_EVENTS_VERBOSE`. Concretely, the top of your sketch may look like this:
-```
+
+```C
 #define SIMPLE_EVENTS_VERBOSE 1
 
 #include <simpleEvents.h>
 ```
 
 Second, make sure that the serial interface is ready by calling `Serial.begin()` early on in the `setup()` part of your sketch:
-```
+
+```C
 void setup(){
   /* Important: for debugging via `Serial` to work the Serial interface
    * needs to be initialized in the `setup()` portion of the sketch.
@@ -248,7 +250,7 @@ Since our examples use far fewer schedules and reactions than the default limit,
 
 In situation where you use a lot of external libraries, you may need to constraint the memory footprint of `SimpleEvents`, and when you have a *lot* of tasks to manage, you may want to give `SimpleEvents` more room. Both can be achieved by initializing the `SimpleEvents` instance with non-default values. For example, if we instead have:
 
-```
+```C
 SimpleEvents<16,12> mainloop
 ```
 
@@ -260,7 +262,7 @@ As an example, to achieve the default circuit behavior we need only 1 schedule a
 
 In cases where you are **really** short on memory, and if your micro-controller is 8-bit,[^2] you can squeeze out a bit more space by using the `TinyEvents` class[^3] rather than the `SimpleEvents` class. The `TinyEvents` class is defined in `tinyEvents.h` instead of `simpleEvents.h`, so the top of your sketch may look like:
 
-```
+```C
 /* We want to use the "TinyEvents" class, so we include "tinyEvents.h"
  * instead of "simpleEvents.h"
  */
@@ -272,6 +274,7 @@ In cases where you are **really** short on memory, and if your micro-controller 
 // store debounce and delay time for reactions in 16-bit unsigned integer
 TinyEvents<1, 2, uint16_t, uint16_t> mainloop;
 ```
+
 Note that we now have to customize the `TinyEvents` instance with **four** parameters. The first two are the same as in the `SimpleEvents` case: the first number is the number of schedules to hold, and the second is the number of reactions to hold. The third and fourth parameters tell the compiler what *type* of variables to use for holding certain internal data, and the idea is to use the **smallest** type you can get away with.
 
 In particular, the third argument in the above declaration (the first `uint16_t`) specifies the type of variable you use to hold the time interval of scheduled tasks. The `uint16_t` stands for 16-bit unsigned integer, and it is good for intervals up to $2^{16} - 1$ = 65535 milliseconds. Any longer and you'll have to revert to `uint32_t` (which is equivalent to `unsigned long` in 8-bit micro-controllers). Similarly, the fourth argument specifies the type of variable you use to hold the delay and debounce of reaction. In most cases, you will be able to get by with `uint16_t` here.
