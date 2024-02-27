@@ -77,7 +77,7 @@ void loop() {
 
 where `to_pause` and `to_resume` are two global variables initialized to `true`. For the full functioning code, see the "[pause_resume_schedule_timed.ino](../examples/pause_resume_schedule_timed/pause_resume_schedule_timed.ino)" sketch.
 
-While instructive, the above example is not very useful. More often, you would want to implement pausing and resuming **on user input**, say through a push button. Given that a `SimpleEvents` instance can handle button push via `.addReaction()`, it suggests that we can handling the pausing and resuming of a scheduling **using a reaction**. What we need to do is to include `.pauseSchedule()` and `.resumeSchedule()` in the function that is called back on trigger, like so:
+While instructive, the above example is not very useful. More often, you would want to implement pausing and resuming **on user input**, say through a push button. Given that a `SimpleEvents` instance can handle button push via `.addReaction()`, it suggests that we can handle the pausing and resuming of a the schedule **using a reaction**. What we need to do is to include `.pauseSchedule()` and `.resumeSchedule()` in the function that is called back on trigger, like so:
 
 ```
 void toggle_schedule(){
@@ -214,7 +214,7 @@ First, **before** you import the `simpleEvents.h` header file, make sure you add
 ```
 #define SIMPLE_EVENTS_VERBOSE 1
 
-#include "simpleEvents.h"
+#include <simpleEvents.h>
 ```
 
 Second, make sure that the serial interface is ready by calling `Serial.begin()` early on in the `setup()` part of your sketch:
