@@ -4,7 +4,7 @@
  * button.
  *
  * This sketch serves to illustrate the `.pauseSehedule()` and the
- * `resumeSchedule()` methods of the `SimpleEvents` class.
+ * `.resumeSchedule()` methods of the `SimpleEvents` class.
  *
  * Circuit: green LED connected to pin 3, and push button (normal LOW) 
  * connected to pin 10.
