@@ -33,7 +33,7 @@ The basic idea of `millis()` based non-blocking loop is this: instead of using `
 
 Thus, the code snippet to toggle the red LED may looks like the following:
 
-```
+```C
 void loop() {
 
   // get the current time
@@ -67,7 +67,7 @@ The code snippet to toggle the green LED can be similarly written, using `timest
 
 Finally, how to make sure the green LED starts 100 ms later than the red LED? Well, the two timestamps have to be set somewhere, most likely in the `setup()` part of the code, and we can set the initial timestamp to differ by 100 ms. Concretely,
 
-```
+```C
 void setup(){
 
   /*
@@ -97,7 +97,7 @@ The way out is to _abstract_ away the repetitive code structure and _encapsulate
 
 To use this strategy, you'll need to place the codes that execute within the `if (now > timestamp)` branch into separate functions, so we define:
 
-```
+```C
 // function that toggles the red LED on and off
 void toggle_red(){
   if (red_state == 0){
@@ -125,7 +125,7 @@ Note that you **do not** set any new timestamp in these functions, since that pa
 
 Of course, you'll need to load the required library and create an instance of `SimpleEvent`. So the top of your sketch will look something like:[^2]
 
-```
+```C
 #include <simpleEvents.h>
 
 SimpleEvents<> mainloop;
@@ -133,7 +133,7 @@ SimpleEvents<> mainloop;
 
 Then, in the `setup()` part of the sketch, you'll need to tell `mainloop` to schedule in the two periodic tasks, and then start the clock ticking, like so:
 
-```
+```C
 void setup(){
 
   /*
@@ -155,7 +155,7 @@ Here the first `.addSchedule()` line tells `mainloop` to schedule the `toggle_re
 
 Then, in the `loop()` part of the sketch, you simply tell `mainloop` to run once every loop so that it will execute at the desired time, like so:
 
-```
+```C
 void loop(){
   mainloop.run();
 }
@@ -167,6 +167,6 @@ Now that you've seen how `SimpleEvents` help you manage periodic task, continue 
 
 [^1]: *For the experts*: Technically you can still use interrupts, so execution is not *completely* blocked. That said, given the limitations of interrupts, non-blocking code based on still the more appropriate solution.
     
-[^2]: You may not have seen variable declaration that has angle brackets `<>` before. There is a technical reason for their existence here. You can learn more in the "[3. advanced features](4_advanced_features.md)" tutorial.
+[^2]: You may not have seen variable declaration that has angle brackets `<>` before. There is a technical reason for their existence here. You can learn more in the "[3. advanced features](3_advanced_features.md)" tutorial.
     
 [^3]: *For the experts*: Technically a C/C++ function can take the **pointer** of another function as an argument. The code above works because the function name is automatically translated to its address. As the Arduino [API Style Guide](https://docs.arduino.cc/learn/contributions/arduino-library-style-guide/) stipulates, I am avoiding `&` and `*` whenever I can.
