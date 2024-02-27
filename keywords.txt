@@ -1,0 +1,26 @@
+#######################################
+# Syntax Coloring Map For simpleEvents
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SimpleEvents	KEYWORD1
+TinyEvents	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+addSchedule	KEYWORD2
+addReaction	KEYWORD2
+cancelReaction	KEYWORD2
+pauseSchedule	KEYWORD2
+pauseTrigger	KEYWORD2
+resumeSchedule	KEYWORD2
+resumeTrigger	KEYWORD2
+setNextSchedule	KEYWORD2
+setNextTrigger	KEYWORD2
+begin	KEYWORD2
+run	KEYWORD2
