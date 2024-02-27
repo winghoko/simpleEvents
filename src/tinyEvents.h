@@ -9,7 +9,7 @@
  * delay).
  * 
  * In addition, the class also provides methods to directly manipulate
- * the scheduled execution of periodic task and reactions.
+ * the scheduled execution of periodic tasks and reactions.
  * 
  * In typical use case, an instance of the class is declared in global
  * scope, and the `.addSchedule()` and `.addReaction()` methods are called as
@@ -26,6 +26,7 @@
  
 /**
  * @author Wing-Ho Ko
+ * @copyright 2024 Wing-Ho Ko
  * @license MIT 
  */
 
@@ -256,6 +257,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::run(){
     for (i = 0; i <= last_schd; i++){
         if (schd_nextCalls[i] < now){
             schd_nextCalls[i] += (unsigned long) schd_tIntrvls[i];
+            // callback is last to allow for self-manipulation
             (* schd_calls[i])();
         }
     }
@@ -267,6 +269,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::run(){
             (rct_nextCalls[i] < now)
         ) {
             rct_areTrigged[i/8] &= ~(0x01 << (i%8));
+            // callback is last to allow for self-manipulation
             (* rct_calls[i])();
         }
     }
@@ -277,6 +280,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::run(){
             if (rct_tDelays[i]==0){
                 // if reaction is immediate directly execute it
                 rct_nextTrigs[i] = now + (unsigned long) rct_tTimeouts[i];
+                // callback is last to allow for self-manipulation
                 (* rct_calls[i])();
             } else {
                 // else register the reaction to run

@@ -54,7 +54,7 @@ bool check_button(){
 void toggle_green_toggle(){
   if (button_parity == 0){
 
-    /* if the new button push is an odd number push, set the next flashing of
+    /* if the new button push is an odd-number push, set the next flashing of
      * green LED to the far future, essentially preventing it from happening.
      * NOTE the third argument of .setNextSchedule() is 1, since `far_future` is
      * an absolute time.
@@ -65,7 +65,7 @@ void toggle_green_toggle(){
     button_parity = 1;
     
   } else {
-    /* if the new button push is an odd number push, set the next flashing of
+    /* if the new button push is an even-number push, set the next flashing of
      * the green LED to occur immediately.
      */
     mainloop.setNextSchedule(0, 0);

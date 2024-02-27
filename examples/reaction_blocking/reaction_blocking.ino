@@ -3,7 +3,7 @@
  * a button is pressed.
  *
  * NOTE: this example DOES NOT use the `SimpleEvents` class and serves
- * a **counterexample** in which the implementation is rely on blocking
+ * a **counterexample** in which the implementation relies on blocking
  * function. The other related examples (listed below) serve to illustrate
  * how the same circuit behavior can be reproduced with non-blocking loops.
  *  + `reaction_by_hand.ino`: bugged first-principle non-blocking 

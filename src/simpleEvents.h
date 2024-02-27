@@ -22,6 +22,7 @@
  
 /**
  * @author Wing-Ho Ko
+ * @copyright 2024 Wing-Ho Ko
  * @license MIT 
  */
 
@@ -319,7 +320,9 @@ void SimpleEvents<T_MAX, R_MAX>::run(){
     // first execute scheduled (periodic) tasks
     for (i = 0; i <= last_schd; i++){
         if (schd_areActive[i] && (schd_nextCalls[i] < now)){
+            // no "now" here: keep the "ticks" sychronized with the initial tick
             schd_nextCalls[i] += schd_tIntrvls[i];
+            // callback is last to allow for self-manipulation
             (* schd_calls[i])();
             SIMPLE_EVENTS_print("Schedule #");
             SIMPLE_EVENTS_print(i);
@@ -331,6 +334,7 @@ void SimpleEvents<T_MAX, R_MAX>::run(){
     for (i = 0; i <= last_rct; i++){
         if (rct_areTrigged[i] && (rct_nextCalls[i] < now)){
             rct_areTrigged[i] = false;
+            // callback is last to allow for self-manipulation
             (* rct_calls[i])();
             SIMPLE_EVENTS_print("Reaction #");
             SIMPLE_EVENTS_print(i);
@@ -346,8 +350,9 @@ void SimpleEvents<T_MAX, R_MAX>::run(){
         ) {
             if (rct_tDelays[i] == 0){
                 // if reaction is immediate, directly execute it
-                (* rct_calls[i])();
                 rct_nextTrigs[i] = now + rct_tTimeouts[i];
+                // callback is last to allow for self-manipulation
+                (* rct_calls[i])();
                 SIMPLE_EVENTS_print("Reaction #");
                 SIMPLE_EVENTS_print(i);
                 SIMPLE_EVENTS_println(" triggered and executed");

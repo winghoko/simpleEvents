@@ -47,7 +47,7 @@ void toggle_schedule(){
 
   if (button_parity == 0){
 
-    /* if the new button push is an odd number push, pause the flashing of
+    /* if the new button push is an odd-number push, pause the flashing of
      * the green LED 
      */
     mainloop.pauseSchedule(0);
@@ -57,7 +57,7 @@ void toggle_schedule(){
 
   } else {
 
-    /* if the new button push is an even number push, pause the flashing of
+    /* if the new button push is an even-number push, pause the flashing of
      * the green LED
      */
     mainloop.resumeSchedule(0);
