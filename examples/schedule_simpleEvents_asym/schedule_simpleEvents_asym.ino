@@ -2,7 +2,7 @@
  * @file Example sketch for that toggle two LEDs at different time
  * intervals using the `SimpleEvents` class from `simpleEvents.h`
  *
- * This sketch differs from `nonblock_schedule.ino` in that the toggling
+ * This sketch differs from `schedule_simpleEvents.ino` in that the toggling
  * of the red LED is assymetric: it turns on for 200 milliseconds at
  * 1 second intervals.
  *

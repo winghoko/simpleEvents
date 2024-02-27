@@ -4,7 +4,7 @@
  *
  * NOTE: this example DOES NOT use the `SimpleEvents` class and serves
  * to illustrate the principles behind its implementation. For an example
- * that uses the `SimpleEvents` class, see the `nonblock_schedule.ino`
+ * that uses the `SimpleEvents` class, see the `debounced_simpleEvents.ino`
  * sketch.
  *
  * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
