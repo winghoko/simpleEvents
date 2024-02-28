@@ -214,10 +214,10 @@ For the full functioning code (which, among other things, defined `toggle_green(
 
 One common way to debug Arduino sketches is to print out debugging messages using the `Serial` interface. The `SimpleEvents` class have built-in support for that, you just need to modify your sketch in two places.
 
-First, **before** you import the `simpleEvents.h` header file, make sure you add a line that `#define` a symbol called `SIMPLE_EVENTS_VERBOSE`. Concretely, the top of your sketch may look like this:
+First, **before** you import the `simpleEvents.h` header file, make sure you add a line that `#define` a symbol called `SIMPLE_EVENTS_VERBOSE`. Concretely, the top of your sketch may look like this:[^3]
 
 ```C
-#define SIMPLE_EVENTS_VERBOSE 1
+#define SIMPLE_EVENTS_VERBOSE
 
 #include <simpleEvents.h>
 ```
@@ -239,7 +239,7 @@ void setup(){
 
 For an example, see the "[both_schedule_reaction_debug.ino](../examples/both_schedule_reaction_debug/both_schedule_reaction_debug.ino)" sketch, which implements the default circuit behavior but with added serial output.
 
-## Specifying the "size" of an `SimpleEvents` instance
+## Specifying the “size” of an `SimpleEvents` instance
 
 If you are sharp eyed and sharp minded, our examples of `SimpleEvents` may leave a few questions in you:
 
@@ -265,7 +265,7 @@ As an example, to achieve the default circuit behavior we need only 1 schedule a
 
 ## Using `TinyEvents` class to further reduce memory footprint
 
-In cases where you are **really** short on memory, and if your micro-controller is 8-bit,[^3] you can squeeze out a bit more space by using the `TinyEvents` class[^4] rather than the `SimpleEvents` class. The `TinyEvents` class is defined in `tinyEvents.h` rather than `simpleEvents.h`, so the top of your sketch may look like:
+In cases where you are **really** short on memory, and if your micro-controller is 8-bit,[^4] you can squeeze out a bit more space by using the `TinyEvents` class[^5] rather than the `SimpleEvents` class. The `TinyEvents` class is defined in `tinyEvents.h` rather than `simpleEvents.h`, so the top of your sketch may look like:
 
 ```C
 /* We want to use the "TinyEvents" class, so we include "tinyEvents.h"
@@ -290,8 +290,10 @@ The methods available to the `TinyEvents` class mostly resemble that of the `Sim
 
 [^1]: However, you'll want the remaining code in the `loop()` to be void of `delay()`.
     
-[^2]: However, there is generally no reason to do so. See the [Specifying the &amp;#34;size&amp;#34; of a SimpleEvents instance](3_advanced_features.md#specifying-the-size-of-an-simpleevents-instance) section for more.
+[^2]: However, there is generally no reason to do so. See the [Specifying the “size” of a SimpleEvents instance](3_advanced_features.md#specifying-the-size-of-an-simpleevents-instance) section for more.
     
-[^3]: An example is the Arduino Uno rev 3; A *counterexample* is the Arduino Uno rev 4 (both wifi and minima versions). Note that technically you can use `TinyEvents` on any micro-controller, but the memory saving is less certain and you may hit some performance issues if the micro-controller is not 8-bit.
+[^3]: Note that there is no ending semicolon `;` here. Also, this is the one place where you cannot replace `#define` with (say) `const int`. That is, doing `const int SIMPLE_EVENTS_VERBOSE;` **will not work here**.
     
-[^4]: So named because I have the [ATtiny85](https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/attiny85-use-hints) micro-controller in mind when I wrote it.
+[^4]: An example is the Arduino Uno rev 3; A *counterexample* is the Arduino Uno rev 4 (both wifi and minima versions). Note that technically you can use `TinyEvents` on any micro-controller, but the memory saving is less certain and you may hit some performance issues if the micro-controller is not 8-bit.
+    
+[^5]: So named because I have the [ATtiny85](https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/attiny85-use-hints) micro-controller in mind when I wrote it.

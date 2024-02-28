@@ -26,7 +26,7 @@
 /* #define the SIMPLE_EVENTS_VERBOSE symbol **before** #include the 
  * "simpleEvents.h" header file to enable verbose serial output.
  */
-#define SIMPLE_EVENTS_VERBOSE 1
+#define SIMPLE_EVENTS_VERBOSE
 
 #include <simpleEvents.h>
 
@@ -83,7 +83,7 @@ void setup() {
 
   // turning on the red LED on button press, no delay
   // set a debouce duration of 2000 milliseconds (timed from button press)
-  mainloop.addReaction(check_button, turn_on_red, 4000, 0);
+  mainloop.addReaction(check_button, turn_on_red, 2000, 0);
 
   // turning OFF the red LED 2000 milliseconds after button press
   // set a debouce duration of 2000 milliseconds (timed from button press)
