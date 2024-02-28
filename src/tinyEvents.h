@@ -79,7 +79,7 @@ class TinyEvents {
     void cancelReaction(int8_t, unsigned long = 0, int8_t = 0);
     void setNextSchedule(int8_t, unsigned long = 0, int8_t = 0);
     void setNextTrigger(int8_t, unsigned long = 0, int8_t = 0);
-    void begin();
+    unsigned long begin();
     void run();
 };
 
@@ -223,7 +223,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::setNextTrigger(
 }
 
 /**
- * Set the timers for all scheduled tasks and  reactions.
+ * Set the timers for all scheduled tasks and reactions.
  * 
  * The `.begin()` method should be called ONCE, AFTER all event hooks are
  * added (via `addSchedule()` and `addReaction()`),
@@ -236,7 +236,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::setNextTrigger(
  * @returns No explicit return.
  */
 template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
-void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
+unsigned long TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
 
     // note that there is a common reference time
     unsigned long now = millis(); 
@@ -249,6 +249,8 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
     for (i = 0; i <= last_rct; i++){
         rct_nextTrigs[i] += now;
     }
+
+    return now;
 
 };
 
