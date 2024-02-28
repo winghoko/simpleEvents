@@ -90,7 +90,7 @@ class SimpleEvents {
     void restartTrigger(int, unsigned long = 0, bool = false);
     void stopReaction(int);
     void cancelReaction(int, unsigned long = 0, bool = false);
-    void begin();
+    unsigned long begin();
     void run();
 };
 
@@ -320,10 +320,10 @@ void SimpleEvents<T_MAX, R_MAX>::stopReaction(int rct_id) {
  * within the `setup()` function.
  *
  * @param - No input parameter
- * @returns No explicit return.
+ * @returns the timestamp at which the internal "clock tick" started
  */
 template <int T_MAX, int R_MAX>
-void SimpleEvents<T_MAX, R_MAX>::begin(){
+unsigned long SimpleEvents<T_MAX, R_MAX>::begin(){
 
     unsigned long now = millis(); // note that there is a common reference time
     int i;
@@ -335,6 +335,11 @@ void SimpleEvents<T_MAX, R_MAX>::begin(){
     for (i = 0; i <= last_rct; i++){
         rct_nextTrigs[i] += now;
     }
+
+    SIMPLE_EVENTS_print("SimpleEvents clock start ticking at millis() = ");
+    SIMPLE_EVENTS_println(now);
+
+    return now;
 
 };
 
