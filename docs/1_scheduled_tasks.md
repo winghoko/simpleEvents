@@ -150,6 +150,7 @@ void setup(){
   mainloop.begin();
 }
 ```
+
 (Yes, functions can take another function as an argument;[^3] and yes, only the *function name* goes into the argument, e.g., it is `toggle_red` and not `toggle_red()`).
 
 Here the first `.addSchedule()` line tells `mainloop` to schedule the `toggle_red` function to run every `timeout_1` milliseconds, with an initial delay of `tinit_1` milliseconds. The second  `.addSchedule()` line can be similarly interpreted.
@@ -168,6 +169,6 @@ Now that you've seen how `SimpleEvents` help you manage periodic task, continue 
 
 [^1]: *For the experts*: Technically you can still use interrupts, so execution is not *completely* blocked. That said, given the limitations of interrupts, non-blocking codes still provide better solutions.
     
-[^2]: You may not have seen variable declaration that has angle brackets `<>` before. There is a technical reason for their existence here. You can learn more in the "[Specifying the "size" of an SimpleEvents instance](3_advanced_features.md#specifying-the-size-of-an-simpleevents-instance)" section of the "3. advanced features" tutorial for more.
+[^2]: You may not have seen variable declaration that has angle brackets `<>` before. There is a technical reason for their existence here. You can learn more in the "[Specifying the “size” of an SimpleEvents instance](3_advanced_features.md#specifying-the-size-of-an-simpleevents-instance)" section of the "3. advanced features" tutorial for more.
     
 [^3]: *For the experts*: Technically a C/C++ function can take the **pointer** of another function as an argument. The code above works because the function name is automatically translated to its address. As the Arduino [API Style Guide](https://docs.arduino.cc/learn/contributions/arduino-library-style-guide/) stipulates, I am avoiding `&` and `*` whenever I can.
