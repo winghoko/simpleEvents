@@ -25,13 +25,27 @@
 
 SimpleEvents<> mainloop;
 
+const int RED_PIN = 2;
 const int GRN_PIN = 3;
 const int BUTTON_PIN = 10;
 
 bool to_pause = true;
 bool to_resume = true;
 
-int grn_state = 0; // variable to track the state of green LED
+int red_state = 0; // variable to track the state of red LED
+
+/* NOTE: the IDs for the schedules and reactions are simply the order they 
+ * are added to the `SimpleEvents` instance. The two IDs are separate from 
+ * each other. In this case:
+ *
+ * For schedules:
+ *   id #0: the `turn_on_green()` schedule
+ *   id #1: the `turn_off_green()` schedule
+ *   id #2: the `toggle_red()` schedule
+ *
+ * For reactions
+ *   id #0: the `toggle_schedule()` reaction
+ */
 
 // function that check if the button is pressed
 bool check_button(){
@@ -43,15 +57,26 @@ bool check_button(){
   }
 }
 
-// function that toggles the green LED on and off
-void toggle_green(){
-  if (grn_state == 0){
-    digitalWrite(GRN_PIN, HIGH);
-    grn_state = 1;
+// function that turn on the green LED
+void turn_on_green(){
+  digitalWrite(GRN_PIN, HIGH);
+}
+
+// function that turn off the green LED
+void turn_off_green(){
+  digitalWrite(GRN_PIN, LOW);
+}
+
+// function that toggles the red LED on and off
+void toggle_red(){
+  if (red_state==0){
+    digitalWrite(RED_PIN, HIGH);
+    red_state = 1;
   } else {
-    digitalWrite(GRN_PIN, LOW);
-    grn_state = 0;
+    digitalWrite(RED_PIN, LOW);
+    red_state = 0;
   }
+  
 }
 
 void setup() {
@@ -59,8 +84,14 @@ void setup() {
   pinMode(GRN_PIN, OUTPUT);
   digitalWrite(GRN_PIN, LOW);
 
-  // schedule the toggling of green LED
-  mainloop.addSchedule(toggle_green, 500);
+  // schedule the turning on of green LED
+  mainloop.addSchedule(turn_on_green, 1000);
+
+  // schedule the turning off of green LED
+  mainloop.addSchedule(turn_off_green, 1000, 500);
+
+  // schedule the toggling of red LED
+  mainloop.addSchedule(toggle_red, 500);
 
   // create the initial timestamp
   mainloop.begin();
@@ -77,6 +108,7 @@ void loop() {
 
     // start pausing the schedule with ID 0
     mainloop.pauseSchedule(0);
+    mainloop.pauseSchedule(1);
 
     to_pause = false; // indicate that we no longer need to issue pause
   } 
@@ -85,9 +117,13 @@ void loop() {
   if (to_resume && now > 10000){
 
     // resume the schedule with ID 0
+    /* NOTE: .resumeschedule() retain the original "ticks" of the schedule, 
+     * while .restartSchedule() resets it.
+     */
     mainloop.resumeSchedule(0);
+    mainloop.resumeSchedule(1);
 
-    to_resume = false; // indicate that we need to issue more resume
+    to_resume = false; // indicate that we need not execute more resumes
   }
 
   mainloop.run();

@@ -4,7 +4,7 @@
  * the process and turns both LED off.
  *
  * This sketch serves to illustrate the `.cancelReaction()`, `.pauseTrigger()`,
- * and `.resumeTrigger()` methods of the `SimpleEvents` class.
+ * and `.restartTrigger()` methods of the `SimpleEvents` class.
  *
  * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
  * button (normal LOW) connected to pin 10.
@@ -59,7 +59,7 @@ void turn_on_red(){
   
   // allow a second button press to trigger `cancel_reset_LEDs()`
   // after a 250 millisecond debounce for human reaction time
-  mainloop.resumeTrigger(0, 250);
+  mainloop.restartTrigger(0, 250);
 }
 
 // function that turns red LED off and green LED on
@@ -88,12 +88,13 @@ void cancel_reset_LEDs(){
   
   // cancel the reactions associated with the LED sequence
   // also reset all of the associated debounce to end in 250 milliseconds
-  /* NOTE: the 250 milliseconds debounce is needed to account for human
+  /* NOTE #1: the 250 milliseconds debounce is needed to account for human
    * reaction time in releasing the button.
    */
-  mainloop.cancelReaction(1, true, 250);
-  mainloop.cancelReaction(2, true, 250);
-  mainloop.cancelReaction(3, true, 250);
+  // NOTE #2: To keep the debounce UNCHANGED, use .stopReaction() instead.
+  mainloop.cancelReaction(1, 250);
+  mainloop.cancelReaction(2, 250);
+  mainloop.cancelReaction(3, 250);
   
   // turn off both LEDs to return LED state to before button press
   /* NOTE that in general, resetting state requires additional action then
