@@ -87,7 +87,8 @@ class SimpleEvents {
     void pauseTrigger(int);
     void resumeSchedule(int, unsigned long = 0, bool = false);
     void resumeTrigger(int, unsigned long = 0, bool = false);
-    void cancelReaction(int, bool = true, unsigned long = 0, bool = false);
+    void stopReaction(int);
+    void cancelReaction(int, unsigned long = 0, bool = false);
     void begin();
     void run();
 };
@@ -244,12 +245,10 @@ void SimpleEvents<T_MAX, R_MAX>::resumeTrigger(
 };
 
 /**
- * Prevent the execution of a specific reaction identified by its id,
- * if a reaction is pending (i.e., between trigger and execution).
+ * Cancel the execution of a specific reaction identified by its id, if a
+ * reaction is pending (i.e., between trigger and execution), and reset the
+ * debounce for accepting the next trigger.
  * @param rct_id - The id of the reaction.
- * @param reset_debounce - Whether to reset the triggering time for
- *     the same reaction after cancelling. If false both timestamp and
- *     abs arguments are ignored.
  * @param timestamp - The time from which the trigger is checked again.
  * @param abs - if false, the timestamp is relative to current time,
  *     otherwise it is the absolute time 
@@ -257,19 +256,36 @@ void SimpleEvents<T_MAX, R_MAX>::resumeTrigger(
  */
 template <int T_MAX, int R_MAX>
 void SimpleEvents<T_MAX, R_MAX>::cancelReaction(
-  int rct_id, bool reset_debounce, unsigned long timestamp, bool abs
-){
+  int rct_id, unsigned long timestamp, bool abs
+) {
 
     if ( (rct_id < 0) || (rct_id > last_rct) ) return;
 
-    if (reset_debounce){
-      if (!abs) timestamp += millis();
-      rct_nextTrigs[rct_id] = timestamp;
-    }
+    if (!abs) timestamp += millis();
+    rct_nextTrigs[rct_id] = timestamp;
+
     rct_areTrigged[rct_id] = false;
     SIMPLE_EVENTS_print("Reaction #");
     SIMPLE_EVENTS_print(rct_id);
     SIMPLE_EVENTS_println(" canceled");
+};
+
+/**
+ * Stop the execution of a specific reaction identified by its id, if a
+ * reaction is pending (i.e., between trigger and execution), but leave the
+ * debounce unmodified.
+ * @param rct_id - The id of the reaction.
+ * @returns No explicit return.
+ */
+template <int T_MAX, int R_MAX>
+void SimpleEvents<T_MAX, R_MAX>::stopReaction(int rct_id) {
+
+    if ( (rct_id < 0) || (rct_id > last_rct) ) return;
+
+    rct_areTrigged[rct_id] = false;
+    SIMPLE_EVENTS_print("Reaction #");
+    SIMPLE_EVENTS_print(rct_id);
+    SIMPLE_EVENTS_println(" stopped");
 };
 
 /**
