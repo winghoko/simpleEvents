@@ -85,8 +85,9 @@ class SimpleEvents {
     );
     void pauseSchedule(int);
     void pauseTrigger(int);
-    void resumeSchedule(int, unsigned long = 0, bool = false);
-    void resumeTrigger(int, unsigned long = 0, bool = false);
+    void resumeSchedule(int);
+    void restartSchedule(int, unsigned long = 0, bool = false);
+    void restartTrigger(int, unsigned long = 0, bool = false);
     void stopReaction(int);
     void cancelReaction(int, unsigned long = 0, bool = false);
     void begin();
@@ -198,6 +199,26 @@ void SimpleEvents<T_MAX, R_MAX>::pauseTrigger(int rct_id){
 
 /**
  * Resume the execution of a specific scheduled task identified by its id.
+ * Keep the "ticks" of the clock of the schedule unchanged (see 
+ * .restartSchedule() for the alternative)
+ * @param schd_id - The id of the scheduled task.
+ * @returns No explicit return.
+ */
+template <int T_MAX, int R_MAX>
+void SimpleEvents<T_MAX, R_MAX>::resumeSchedule(int schd_id) {
+
+    if ( (schd_id < 0) || (schd_id > last_schd) ) return;
+
+    schd_areActive[schd_id] = true;
+    SIMPLE_EVENTS_print("Schedule #");
+    SIMPLE_EVENTS_print(schd_id);
+    SIMPLE_EVENTS_println(" resumed");
+};
+
+/**
+ * Restart the execution of a specific scheduled task identified by its id.
+ * The "ticks" of the clock of the schedule is reset (see .resumeSchedule()
+ * for the alternative).
  * @param schd_id - The id of the scheduled task.
  * @param timestamp - The time from which the scheduled task is run again.
  * @param abs - if false, the timestamp is relative to current time,
@@ -205,7 +226,7 @@ void SimpleEvents<T_MAX, R_MAX>::pauseTrigger(int rct_id){
  * @returns No explicit return.
  */
 template <int T_MAX, int R_MAX>
-void SimpleEvents<T_MAX, R_MAX>::resumeSchedule(
+void SimpleEvents<T_MAX, R_MAX>::restartSchedule(
     int schd_id, unsigned long timestamp, bool abs
 ) {
 
@@ -217,11 +238,11 @@ void SimpleEvents<T_MAX, R_MAX>::resumeSchedule(
     schd_nextCalls[schd_id] = timestamp;
     SIMPLE_EVENTS_print("Schedule #");
     SIMPLE_EVENTS_print(schd_id);
-    SIMPLE_EVENTS_println(" resumed");
+    SIMPLE_EVENTS_println(" restarted");
 };
 
 /**
- * Resume the trigger check of a specific reaction identified by its id.
+ * Restart the trigger check of a specific reaction identified by its id.
  * @param rct_id - The id of the reaction.
  * @param timestamp - The time from which the trigger is checked again.
  * @param abs - if false, the timestamp is relative to current time,
@@ -229,7 +250,7 @@ void SimpleEvents<T_MAX, R_MAX>::resumeSchedule(
  * @returns No explicit return.
  */
 template <int T_MAX, int R_MAX>
-void SimpleEvents<T_MAX, R_MAX>::resumeTrigger(
+void SimpleEvents<T_MAX, R_MAX>::restartTrigger(
     int rct_id, unsigned long timestamp, bool abs
 ) {
 
@@ -237,11 +258,11 @@ void SimpleEvents<T_MAX, R_MAX>::resumeTrigger(
 
     if (!abs) timestamp += millis();
 
+    rct_nextTrigs[rct_id] = timestamp;
     rct_areActive[rct_id] = true;
-    rct_nextTrigs[rct_id] =timestamp;
     SIMPLE_EVENTS_print("Trigger #");
     SIMPLE_EVENTS_print(rct_id);
-    SIMPLE_EVENTS_println(" resumed");
+    SIMPLE_EVENTS_println(" restarted");
 };
 
 /**
@@ -335,14 +356,18 @@ void SimpleEvents<T_MAX, R_MAX>::run(){
 
     // first execute scheduled (periodic) tasks
     for (i = 0; i <= last_schd; i++){
-        if (schd_areActive[i] && (schd_nextCalls[i] < now)){
-            // no "now" here: keep the "ticks" sychronized with the initial tick
+        if (schd_nextCalls[i] < now){
+            // no `now`: keep the "ticks" synchronized with the initial tick
+            // always keep the clock ticking regardless of whether task active
             schd_nextCalls[i] += schd_tIntrvls[i];
-            // callback is last to allow for self-manipulation
-            (* schd_calls[i])();
-            SIMPLE_EVENTS_print("Schedule #");
-            SIMPLE_EVENTS_print(i);
-            SIMPLE_EVENTS_println(" executed");
+            if (schd_areActive[i]){
+                // callback only if the task is active
+                // callback is last to allow for self-manipulation
+                (* schd_calls[i])();
+                SIMPLE_EVENTS_print("Schedule #");
+                SIMPLE_EVENTS_print(i);
+                SIMPLE_EVENTS_println(" executed");
+            }
         }
     }
 
