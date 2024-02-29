@@ -76,9 +76,9 @@ class TinyEvents {
         TWait_t, TWait_t, unsigned long = 0
     );
     void stopReaction(int8_t);
-    void cancelReaction(int8_t, unsigned long = 0, int8_t = 0);
-    void setNextSchedule(int8_t, unsigned long = 0, int8_t = 0);
-    void setNextTrigger(int8_t, unsigned long = 0, int8_t = 0);
+    void cancelReaction(int8_t, unsigned long, int8_t = 0);
+    void setNextSchedule(int8_t, unsigned long, int8_t = 0);
+    void setNextTrigger(int8_t, unsigned long, int8_t = 0);
     unsigned long begin();
     void run();
 };
