@@ -119,7 +119,7 @@ void loop() {
   if (to_resume && now > 10000){
 
     // resume the schedule with ID 0
-    /* NOTE: .resumeschedule() retain the original "ticks" of the schedule, 
+    /* NOTE: .resumeSchedule() retain the original "ticks" of the schedule, 
      * while .restartSchedule() resets it.
      */
     mainloop.resumeSchedule(0);

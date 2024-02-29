@@ -81,7 +81,7 @@ void turn_off_green(){
 // function to cancel pending actions in the LED sequence, and reset the LEDs
 void cancel_reset_LEDs(){
     
-  /* The LED seqauence has reset, so the trigger for `cancel_reset_LEDs()`
+  /* The LED sequence has reset, so the trigger for `cancel_reset_LEDs()`
    * should now be off
    */
   mainloop.pauseTrigger(0);

@@ -76,7 +76,7 @@ void loop() {
   if (to_resume && now > 10000){
 
     // resume the schedule with ID 0
-    /* NOTE: .resumeschedule() retain the original "ticks" of the schedule, 
+    /* NOTE: .resumeSchedule() retain the original "ticks" of the schedule, 
      * while .restartSchedule() resets it.
      */
     mainloop.resumeSchedule(0);
@@ -219,7 +219,7 @@ Also, when the button is pressed a second time, `turn_on_red()`, `switch_red_gre
 // function to cancel pending actions in the LED sequence, and reset the LEDs
 void cancel_reset_LEDs(){
     
-  /* The LED seqauence has reset, so the trigger for `cancel_reset_LEDs()`
+  /* The LED sequence has reset, so the trigger for `cancel_reset_LEDs()`
    * should now be off
    */
   mainloop.pauseTrigger(0);
