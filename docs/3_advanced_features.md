@@ -36,15 +36,25 @@ Given that `SimpleEvents` is non-blocking, it is totally fine to add additional 
 
 Incidentally, this means that you can create and use *multiple instances* of the `SimpleEvents` class in the same sketch. You just have to make sure that the `.begin()` method is called once for both instances, and that you include the `.run()` method for each instance within the `loop()` of the sketch.[^2]
 
-## Pausing and resuming
+## Pausing and resuming schedules
 
 The `SimpleEvents` class is there to manage periodic tasks and reactions, and sometimes you need to "manage the manager." As a concrete example, let's say you use `.addSchedule()` to create a flashing LED. There are circumstances where you may want to stop the LED from flashing, thus keeping it in either perpetual on or perpetual off state.
 
-To that end, `SimpleEvents` provides a pair of methods named `.pauseSchedule()` and `.resumeSchedule()` to control the pausing and resumption of a scheduled task.
+To that end, `SimpleEvents` provides a pair of methods named `.pauseSchedule()` and `.resumeSchedule()` to control the pausing and resumption of a scheduled task. (There is also a variation of `.resumeSchedule()` named `.restartSchedule()`. Their difference is discussed below).
 
 Since a `SimpleEvents` instance can manage multiple schedules, you'll need to specify which one to pause/resume when you use `.pauseSchedule()` and `.resumeSchedule()`. The identifier (a.k.a. ID) for a particular schedule is simple: it is the order it got added to the `SimpleEvents` instance, except that (like array indices) the count starts from 0. Thus, the schedule created by the first `.addSchedule()` call has ID 0, the schedule created by the second `.addSchedule()` call has ID 1, and so on.
 
-As a simple example, let's say you have a flashing LED managed by schedule #0, and you want the flashing to pause between `millis()` = 5000 and `millis()` = 10000. Then, the `loop()` portion of your Arduino sketch may looks like the following:
+As a simple example, consider our usual circuit, and suppose the circuit behavior your want is:
+ * Red LED toggle between on and off at 500 milliseconds interval.
+ * Green LED toggle between on and off at 500 milliseconds interval.
+ * The flashing of the green LED is paused between `millis()` = 5000 and `millis()` = 10000.
+
+To handle the toggling of the 2 LEDs, we define 3 schedules in the following way (for details, see the full functioning sketch "[pause_resume_schedule_timed.ino](../examples/pause_resume_schedule_timed/pause_resume_schedule_timed.ino)"):
+ * Schedule #0 (added first): periodically run `.turn_on_green()`, which turns on the green LED every 1 second.
+ * Schedule #1 (added second): periodically run `.turn_off_green()`, which turns off the green LED every 1 second, and is executed 500 milliseconds after schedule #0.
+ * Schedule #2 (added last): periodically run `.toggle_red()`, which toggles the red LED every 500 milliseconds, and start at the same time as schedule #0.
+
+Then, to pause and resume the toggling of the green LED at the desired time, we write the `loop()` portion of the sketch as follows:
 
 ```C
 void loop() {
@@ -57,6 +67,7 @@ void loop() {
 
     // start pausing the schedule with ID 0
     mainloop.pauseSchedule(0);
+    mainloop.pauseSchedule(1);
 
     to_pause = false; // indicate that we no longer need to issue pause
   } 
@@ -65,9 +76,13 @@ void loop() {
   if (to_resume && now > 10000){
 
     // resume the schedule with ID 0
+    /* NOTE: .resumeSchedule() retain the original "ticks" of the schedule, 
+     * while .restartSchedule() resets it.
+     */
     mainloop.resumeSchedule(0);
+    mainloop.resumeSchedule(1);
 
-    to_resume = false; // indicate that we need not issue more resumes
+    to_resume = false; // indicate that we need not execute more resumes
   }
 
   mainloop.run();
@@ -75,11 +90,18 @@ void loop() {
 }
 ```
 
-where `to_pause` and `to_resume` are two global variables initialized to `true`. For the full functioning code, see the "[pause_resume_schedule_timed.ino](../examples/pause_resume_schedule_timed/pause_resume_schedule_timed.ino)" sketch.
+where `to_pause` and `to_resume` are two global variables initialized to `true`. Again, see the "[pause_resume_schedule_timed.ino](../examples/pause_resume_schedule_timed/pause_resume_schedule_timed.ino)" sketch for full-functioning sketch.
+
+When you run this example, you will see that the red and the green LED are initially synchronized, and they remain synchronized after the green LED have resumed toggling. This is because the "internal clocks" of schedules #0 and #1 continue to tick even when the tasks are not run, and these clocks remain synchronized with the clock of the red LED.
+
+Incidentally, this is the reason why we need to have 2 *separate* functions `turn_on_green()` and `turn_off_green()`. If we instead write a single `toggle_red()` and use a global variable to track the state of the green LED, we may end up with a situation where the two clocks (for toggling the 2 LEDs, respectively) are synchronized but the *LED states* are out of sync.
+
+Note that if you want the internal clock of a schedule to reset, you can use the `.restartSchedule()` method instead of the `.resumeSchedule()` method. When you use `.restartSchedule()`, you will also have the option to specify a delay between the restarting of the schedule and its first "tick" after the restart.
 
 While instructive, the above example is not very useful. More often, you would want to implement pausing and resuming **on user input**, say through a push button. Given that a `SimpleEvents` instance can handle button push via `.addReaction()`, it suggests that we can handle the pausing and resuming of a schedule **using a reaction**. What we need to do is to include `.pauseSchedule()` and `.resumeSchedule()` in the reaction (which we named `toggle_schedule()` in this case), like so:
 
 ```C
+// function that toggles the flashing of the green LED
 void toggle_schedule(){
 
   if (button_parity == 0){
@@ -88,6 +110,7 @@ void toggle_schedule(){
      * the green LED 
      */
     mainloop.pauseSchedule(0);
+    mainloop.pauseSchedule(1);
 
     // indicating that the button has now been pushed odd number of times
     button_parity = 1;
@@ -97,7 +120,11 @@ void toggle_schedule(){
     /* if the new button push is an even-number push, pause the flashing of
      * the green LED
      */
+    /* NOTE: .resumeSchedule() retain the original "ticks" of the schedule, 
+     * while .restartSchedule() resets it.
+     */
     mainloop.resumeSchedule(0);
+    mainloop.resumeSchedule(1);
 
     // indicating that the button has now been pushed even number of times
     button_parity = 0; 
@@ -110,20 +137,26 @@ where `button_parity` is a global variable initialized to `0`. We can then add t
 ```C
 void setup() {
 
-  pinMode(GRN_PIN, OUTPUT);
-  digitalWrite(GRN_PIN, LOW);
+  /*
+   * More setup codes
+   */
 
   // turn off the toggling of green LED if button is pressed odd times
   // turn on the toggling of green LED if button is pressed even times
   // set a debounce duration of 250 milliseconds to account for reaction time
   mainloop.addReaction(check_button, toggle_schedule, 250, 0);
 
-  // schedule the toggling of green LED
+  // schedule the turning on of green LED
   // This is the first SCHEDULE added, so its ID is still 0
-  mainloop.addSchedule(toggle_green, 500);
+  mainloop.addSchedule(turn_on_green, 1000);
 
-  // create the initial timestamp
-  mainloop.begin();
+  // schedule the turning off of green LED
+  // This is the second SCHEDULE added, so its ID is 1
+  mainloop.addSchedule(turn_off_green, 1000, 500);
+
+  // schedule the toggling of red LED
+  // This is the third SCHEDULE added, so its ID is 2
+  mainloop.addSchedule(toggle_red, 500);
 
 }
 
@@ -132,9 +165,11 @@ void loop() {
 }
 ```
 
-For the full functioning code (which, among other things, defined `toggle_green()` and `check_button()`), see the "[pause_resume_schedule.ino](../examples/pause_resume_schedule/pause_resume_schedule.ino)" sketch.
+For the full functioning code, see the "[pause_resume_schedule.ino](../examples/pause_resume_schedule/pause_resume_schedule.ino)" sketch.
 
-Similar to schedules, the `SimpleEvents` class provides `.pauseTrigger()` and `.resumeTrigger()` methods to control whether the trigger of a reaction is checked. In addition, when the delay of a reaction (the value in the *fourth* argument of `.addReaction()`) is positive, a pending reaction can be cancelled with the `.cancelReaction()` methods. Just like the corresponding methods for schedules, you need to supply a reaction ID to the above methods, and the ID is the order for which the reaction is added, counting from 0.
+## Pausing and restarting reactions
+
+Similar to schedules, the `SimpleEvents` class provides `.pauseTrigger()` and `.restartTrigger()` methods (but there's **no** `.resumeTrigger()`) to control whether the trigger of a reaction is checked. In addition, when the delay of a reaction (the value in the *fourth* argument of `.addReaction()`) is positive, a pending reaction can be cancelled with the `.cancelReaction()` and the `.stopReaction()` methods (their difference is discussed below). Just like the corresponding methods for schedules, you need to supply a reaction ID to the above methods, and the ID is the order for which the reaction is added, counting from 0.
 
 An interesting example for using `.pauseTrigger()`, `.resumeTrigger()`, `.cancelReaction()` is to consider a variation of "[debounced_simpleEvents.ino](../examples/debounced_simpleEvents/debounced_simpleEvents.ino)" where, after a first button press and when the LED sequence is in progress, a second button press can be used to cancel the LED sequence. The concrete circuit behavior we want is:
 
@@ -183,7 +218,7 @@ Also, when the button is pressed a second time, `turn_on_red()`, `switch_red_gre
 ```C
 // function to cancel pending actions in the LED sequence, and reset the LEDs
 void cancel_reset_LEDs(){
-  
+    
   /* The LED sequence has reset, so the trigger for `cancel_reset_LEDs()`
    * should now be off
    */
@@ -191,16 +226,17 @@ void cancel_reset_LEDs(){
   
   // cancel the reactions associated with the LED sequence
   // also reset all of the associated debounce to end in 250 milliseconds
-  /* NOTE: the 250 milliseconds debounce is needed to account for human
+  /* NOTE #1: the 250 milliseconds debounce is needed to account for human
    * reaction time in releasing the button.
    */
-  mainloop.cancelReaction(1, true, 250);
-  mainloop.cancelReaction(2, true, 250);
-  mainloop.cancelReaction(3, true, 250);
+  // NOTE #2: To keep the debounce UNCHANGED, use .stopReaction() instead.
+  mainloop.cancelReaction(1, 250);
+  mainloop.cancelReaction(2, 250);
+  mainloop.cancelReaction(3, 250);
   
   // turn off both LEDs to return LED state to before button press
-  /* NOTE that in general, resetting state requires additional action then just
-   * calling `cancelReaction()`
+  /* NOTE that in general, resetting state requires additional action then
+   * just calling `cancelReaction()`
    */
   digitalWrite(RED_PIN, LOW);
   digitalWrite(GRN_PIN, LOW);
@@ -209,6 +245,8 @@ void cancel_reset_LEDs(){
 ```
 
 For the full functioning code (which, among other things, defined `toggle_green()` and `check_button()`), see the "[cancel_reaction.ino](../examples/cancel_reaction/cancel_reaction.ino)" sketch.
+
+Note that we are using `.cancelReaction()` in this sketch because when we cancel the LED sequence, we also want to modify the debounce so that the button can immediately (after accounting for reaction time) register new presses. If we want to leave the debounce unchanged, we could use `.stopReaction()` method instead.
 
 ## Serial debugging interface
 
@@ -280,7 +318,7 @@ In cases where you are **really** short on memory, and if your micro-controller 
 TinyEvents<1, 2, uint16_t, uint16_t> mainloop;
 ```
 
-Note that we have to customize the `TinyEvents` instance with **four** parameters. The first two are the same as in the `SimpleEvents` case: the first number is the number of schedules to hold, and the second is the number of reactions to hold. The third and fourth parameters tell the compiler what *type* of variables to use for holding certain internal data, and the idea is to use the **smallest** type you can get away with.
+Note that we have to customize the `TinyEvents` instance with **four** parameters. The first two are the same as in the `SimpleEvents` case: the first number is the number of schedules to hold, and the second is the number of reactions to hold. The third and fourth parameters tell the compiler what *type* of variables to use for holding certain internal data, and the idea is to use the **smallest** type you can get away with.[^6]
 
 In particular, the third argument (the first `uint16_t`) specifies the type of variable to use for holding the time intervals between scheduled tasks. The `uint16_t` stands for 16-bit unsigned integer, and it is good for intervals up to $2^{16} - 1$ = 65535 milliseconds. For longer time you'll need to revert to `uint32_t` (which is equivalent to `unsigned long` in 8-bit micro-controllers). Similarly, the fourth argument specifies the type of variable to use for holding the delay and debounce of reactions. In most cases, you will be able to get by with the  `uint16_t` here.
 
@@ -297,3 +335,5 @@ The methods available to the `TinyEvents` class mostly resemble that of the `Sim
 [^4]: An example is the Arduino Uno rev 3; A *counterexample* is the Arduino Uno rev 4 (both wifi and minima versions). Note that technically you can use `TinyEvents` on any micro-controller, but the memory saving is less certain and you may hit some performance issues if the micro-controller is not 8-bit.
     
 [^5]: So named because I have the [ATtiny85](https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/attiny85-use-hints) micro-controller in mind when I wrote it.
+    
+[^6]: The parameters inside angle brackets have default values in `TinyEvents` too. The default `<>` (empty brackets) is equivalent to `<4, 4, uint32_t, uint16_t>`. Occasionally you may find partial customization like `<8,8>` (leaving the types to their default values) useful.

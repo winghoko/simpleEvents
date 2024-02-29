@@ -4,7 +4,7 @@
  * the process and turns both LED off.
  *
  * This sketch serves to illustrate the `.cancelReaction()`, `.pauseTrigger()`,
- * and `.resumeTrigger()` methods of the `SimpleEvents` class.
+ * and `.restartTrigger()` methods of the `SimpleEvents` class.
  *
  * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
  * button (normal LOW) connected to pin 10.
@@ -34,7 +34,7 @@ const int GRN_PIN = 3;
 const int BUTTON_PIN = 10;
 
 /* NOTE: the IDs for the reactions are simply the order they are added to 
- * the `SimpleEvents` instance, with index starting at 0. In this exmaple:
+ * the `SimpleEvents` instance, with index starting at 0. In this example:
  *
  * id #0: the `cancel_reset_LEDs()` reaction
  * id #1: the `turn_on_red()` reaction
@@ -59,7 +59,7 @@ void turn_on_red(){
   
   // allow a second button press to trigger `cancel_reset_LEDs()`
   // after a 250 millisecond debounce for human reaction time
-  mainloop.resumeTrigger(0, 250);
+  mainloop.restartTrigger(0, 250);
 }
 
 // function that turns red LED off and green LED on
@@ -81,19 +81,20 @@ void turn_off_green(){
 // function to cancel pending actions in the LED sequence, and reset the LEDs
 void cancel_reset_LEDs(){
     
-  /* The LED seqauence has reset, so the trigger for `cancel_reset_LEDs()`
+  /* The LED sequence has reset, so the trigger for `cancel_reset_LEDs()`
    * should now be off
    */
   mainloop.pauseTrigger(0);
   
   // cancel the reactions associated with the LED sequence
   // also reset all of the associated debounce to end in 250 milliseconds
-  /* NOTE: the 250 milliseconds debounce is needed to account for human
+  /* NOTE #1: the 250 milliseconds debounce is needed to account for human
    * reaction time in releasing the button.
    */
-  mainloop.cancelReaction(1, true, 250);
-  mainloop.cancelReaction(2, true, 250);
-  mainloop.cancelReaction(3, true, 250);
+  // NOTE #2: To keep the debounce UNCHANGED, use .stopReaction() instead.
+  mainloop.cancelReaction(1, 250);
+  mainloop.cancelReaction(2, 250);
+  mainloop.cancelReaction(3, 250);
   
   // turn off both LEDs to return LED state to before button press
   /* NOTE that in general, resetting state requires additional action then
