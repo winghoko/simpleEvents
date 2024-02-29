@@ -15,11 +15,13 @@ TinyEvents	KEYWORD1
 
 addSchedule	KEYWORD2
 addReaction	KEYWORD2
+stopReaction	KEYWORD2
 cancelReaction	KEYWORD2
 pauseSchedule	KEYWORD2
 pauseTrigger	KEYWORD2
 resumeSchedule	KEYWORD2
-resumeTrigger	KEYWORD2
+restartSchedule	KEYWORD2
+restartTrigger	KEYWORD2
 setNextSchedule	KEYWORD2
 setNextTrigger	KEYWORD2
 begin	KEYWORD2

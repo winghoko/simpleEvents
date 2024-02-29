@@ -86,10 +86,10 @@ class SimpleEvents {
     void pauseSchedule(int);
     void pauseTrigger(int);
     void resumeSchedule(int);
-    void restartSchedule(int, unsigned long = 0, bool = false);
-    void restartTrigger(int, unsigned long = 0, bool = false);
+    void restartSchedule(int, unsigned long, bool = false);
+    void restartTrigger(int, unsigned long, bool = false);
     void stopReaction(int);
-    void cancelReaction(int, unsigned long = 0, bool = false);
+    void cancelReaction(int, unsigned long, bool = false);
     unsigned long begin();
     void run();
 };
