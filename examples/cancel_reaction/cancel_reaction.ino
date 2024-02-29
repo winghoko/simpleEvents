@@ -34,7 +34,7 @@ const int GRN_PIN = 3;
 const int BUTTON_PIN = 10;
 
 /* NOTE: the IDs for the reactions are simply the order they are added to 
- * the `SimpleEvents` instance, with index starting at 0. In this exmaple:
+ * the `SimpleEvents` instance, with index starting at 0. In this example:
  *
  * id #0: the `cancel_reset_LEDs()` reaction
  * id #1: the `turn_on_red()` reaction

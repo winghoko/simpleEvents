@@ -3,11 +3,11 @@
  * interval, but the flashing can be suspended or resumed by pressing a push
  * button.
  *
- * This sketch serves to illustrate the `.pauseSehedule()` and the
+ * This sketch serves to illustrate the `.pauseSchedule()` and the
  * `.resumeSchedule()` methods of the `SimpleEvents` class.
  *
- * Circuit: green LED connected to pin 3, and push button (normal LOW) 
- * connected to pin 10.
+ * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
+ * button (normal LOW) connected to pin 10.
   * 
  * Expected circuit behavior:
  *  + Red LED toggle between on and off at 500 milliseconds interval.
@@ -77,7 +77,7 @@ void toggle_schedule(){
     /* if the new button push is an even-number push, pause the flashing of
      * the green LED
      */
-    /* NOTE: .resumeschedule() retain the original "ticks" of the schedule, 
+    /* NOTE: .resumeSchedule() retain the original "ticks" of the schedule, 
      * while .restartSchedule() resets it.
      */
     mainloop.resumeSchedule(0);
@@ -112,7 +112,9 @@ void toggle_red(){
 
 void setup() {
 
+  pinMode(RED_PIN, OUTPUT);
   pinMode(GRN_PIN, OUTPUT);
+  digitalWrite(RED_PIN, LOW);
   digitalWrite(GRN_PIN, LOW);
 
   // turn off the toggling of green LED if button is pressed odd times

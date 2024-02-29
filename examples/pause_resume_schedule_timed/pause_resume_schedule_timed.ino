@@ -3,15 +3,18 @@
  * interval, but the flashing is suspended between millis() = 5000 and 
  * millis() = 10000.
  *
- * This sketch serves to illustrate the `.pauseSehedule()` and the
+ * This sketch serves to illustrate the `.pauseSchedule()` and the
  * `.resumeSchedule()` methods of the `SimpleEvents` class.
  *
- * Circuit: green LED connected to pin 3, and push button (normal LOW) 
- * connected to pin 10.
+ * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
+ * button (normal LOW) connected to pin 10.
  * 
  * Expected circuit behavior:
+ *  + Red LED toggle between on and off at 500 milliseconds interval.
  *  + Green LED toggle between on and off at 500 milliseconds interval.
- *  + The flashing is pasued between millis() = 5000 and millis() = 10000.
+ *  + The flashing of the green LED is paused between millis() = 5000
+ *    and millis() = 10000.
+ *  + The red and green LEDs should always be synchronized.
  */
 
 
@@ -42,9 +45,6 @@ int red_state = 0; // variable to track the state of red LED
  *   id #0: the `turn_on_green()` schedule
  *   id #1: the `turn_off_green()` schedule
  *   id #2: the `toggle_red()` schedule
- *
- * For reactions
- *   id #0: the `toggle_schedule()` reaction
  */
 
 // function that check if the button is pressed
@@ -81,16 +81,18 @@ void toggle_red(){
 
 void setup() {
 
+  pinMode(RED_PIN, OUTPUT);
   pinMode(GRN_PIN, OUTPUT);
+  digitalWrite(RED_PIN, LOW);
   digitalWrite(GRN_PIN, LOW);
 
-  // schedule the turning on of green LED
+  // schedule the turning on of green LED (ID = 0)
   mainloop.addSchedule(turn_on_green, 1000);
 
-  // schedule the turning off of green LED
+  // schedule the turning off of green LED (ID = 1)
   mainloop.addSchedule(turn_off_green, 1000, 500);
 
-  // schedule the toggling of red LED
+  // schedule the toggling of red LED (ID = 2)
   mainloop.addSchedule(toggle_red, 500);
 
   // create the initial timestamp

@@ -3,11 +3,11 @@
  * interval, but the flashing can be suspended or resumed by pressing a push
  * button.
  *
- * This sketch serves to illustrate the `.pauseSehedule()` and the
+ * This sketch serves to illustrate the `.pauseSchedule()` and the
  * `.setNextSchedule()` methods of the `TinyEvents` class.
  *
- * Circuit: green LED connected to pin 3, and push button (normal LOW) 
- * connected to pin 10.
+ * Circuit: red LED connected to pin 2, green LED connected to pin 3, and push
+ * button (normal LOW) connected to pin 10.
   * 
  * Expected circuit behavior:
  *  + Red LED toggle between on and off at 500 milliseconds interval.
@@ -24,7 +24,7 @@
  */
 
 // we want `TinyEvents` not `SimpleEvents`, so #include <tinyEvents.h>
-#include "tinyEvents.h"
+#include <tinyEvents.h>
 
 TinyEvents<> mainloop;
 
@@ -129,7 +129,9 @@ void toggle_schedule(){
 
 void setup() {
 
+  pinMode(RED_PIN, OUTPUT);
   pinMode(GRN_PIN, OUTPUT);
+  digitalWrite(RED_PIN, LOW);
   digitalWrite(GRN_PIN, LOW);
 
   // schedule the turning on of green LED
