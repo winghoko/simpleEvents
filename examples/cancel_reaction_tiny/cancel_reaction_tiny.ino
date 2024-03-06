@@ -38,7 +38,7 @@ const int BUTTON_PIN = 10;
 const unsigned long far_future = 4294967295;
 
 /* NOTE: the IDs for the reactions are simply the order they are added to 
- * the `SimpleEvents` instance, with index starting at 0. In this exmaple:
+ * the `SimpleEvents` instance, with index starting at 0. In this example:
  *
  * id #0: the `cancel_reset_LEDs()` reaction
  * id #1: the `turn_on_red()` reaction
@@ -96,12 +96,13 @@ void cancel_reset_LEDs(){
 
   // cancel the reactions associated with the LED sequence
   // also reset all of the associated debounce to end in 250 milliseconds
-  /* NOTE: the 250 milliseconds debounce is needed to account for human
+  /* NOTE #1: the 250 milliseconds debounce is needed to account for human
    * reaction time in releasing the button.
    */
-  mainloop.cancelReaction(1, 1, 250);
-  mainloop.cancelReaction(2, 1, 250);
-  mainloop.cancelReaction(3, 1, 250);
+  // NOTE #2: To keep the debounce UNCHANGED, use .stopReaction() instead.
+  mainloop.cancelReaction(1, 250);
+  mainloop.cancelReaction(2, 250);
+  mainloop.cancelReaction(3, 250);
   
   // turn off both LEDs to return LED state to before button press
   /* NOTE that in general, resetting state requires additional action then
@@ -113,8 +114,6 @@ void cancel_reset_LEDs(){
 }
 
 void setup() {
-
-  Serial.begin(9600); //DEBUG
 
   pinMode(RED_PIN, OUTPUT);
   pinMode(GRN_PIN, OUTPUT);

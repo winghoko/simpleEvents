@@ -75,10 +75,11 @@ class TinyEvents {
         tinyEventsCheck *, tinyEventsAction *,
         TWait_t, TWait_t, unsigned long = 0
     );
-    void cancelReaction(int8_t, int8_t = 1, unsigned long = 0, int8_t = 0);
-    void setNextSchedule(int8_t, unsigned long = 0, int8_t = 0);
-    void setNextTrigger(int8_t, unsigned long = 0, int8_t = 0);
-    void begin();
+    void stopReaction(int8_t);
+    void cancelReaction(int8_t, unsigned long, int8_t = 0);
+    void setNextSchedule(int8_t, unsigned long, int8_t = 0);
+    void setNextTrigger(int8_t, unsigned long, int8_t = 0);
+    unsigned long begin();
     void run();
 };
 
@@ -140,29 +141,44 @@ int8_t TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::addReaction(
 };
 
 /**
- * Prevent the execution of a specific reaction identified by its id,
- * if a reaction is pending (i.e., between trigger and execution).
+ * Cancel the execution of a specific reaction identified by its id, if a
+ * reaction is pending (i.e., between trigger and execution), and reset the
+ * debounce for accepting the next trigger.
  * @param rct_id - The id of the reaction.
- * @param reset_debounce - Whether to reset the triggering time for
- *     the same reaction after cancelling. If false both timestamp and
- *     abs arguments are ignored.
  * @param timestamp - The time from which the trigger is checked again.
- * @param abs - if false, the timestamp is relative to current time,
- *     otherwise it is the absolute time 
+ * @param abs - if positive, the timestamp is absolute (i.e., direct comparison
+ *    with millis()), otherwise it is relative to the time present time.
  * @returns No explicit return.
  */
 template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
 void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::cancelReaction(
-    int8_t rct_id, int8_t reset_debounce, unsigned long timestamp, int8_t abs
+    int8_t rct_id, unsigned long timestamp, int8_t abs
 ) {
 
     if ( (rct_id < 0) || (rct_id > last_rct) ) return;
     
-    if (reset_debounce > 0){
-        if (abs < 1) timestamp += millis();
-        rct_nextTrigs[rct_id] = timestamp;
-    }
+    if (abs < 1) timestamp += millis();
+    rct_nextTrigs[rct_id] = timestamp;
+    
+    // ~(0x01 << (i%8)) is a bitmask with a single 0 at i%8 position
+    // the &= then set the i%8 bit to 0
+    rct_areTrigged[rct_id/8] &= ~(0x01 << (rct_id%8));
+};
 
+/**
+ * Stop the execution of a specific reaction identified by its id, if a
+ * reaction is pending (i.e., between trigger and execution), but leave the
+ * debounce unmodified.
+ * @param rct_id - The id of the reaction.
+ * @returns No explicit return.
+ */
+template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
+void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::stopReaction(int8_t rct_id) {
+
+    if ( (rct_id < 0) || (rct_id > last_rct) ) return;
+
+    // ~(0x01 << (i%8)) is a bitmask with a single 0 at i%8 position
+    // the &= then set the i%8 bit to 0
     rct_areTrigged[rct_id/8] &= ~(0x01 << (rct_id%8));
 };
 
@@ -171,7 +187,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::cancelReaction(
  * @param schd_id - The id of the scheduled task.
  * @param timestamp - The time (in ms) of the next call of the scheduled task.
  * @param abs - if positive, the timestamp is absolute (i.e., direct comparison
- *    with millis()), otherwise it is relative to the time present time 
+ *    with millis()), otherwise it is relative to the time present time.
  * @returns No explicit return.
  */
 template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
@@ -191,7 +207,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::setNextSchedule(
  * @param rct_id - The id of the reaction/trigger pair
  * @param timestamp - The time (in ms) of the next check of the trigger
  * @param abs - if positive, the timestamp is absolute (i.e., direct comparison
- *    with millis()), otherwise it is relative to the time present time 
+ *    with millis()), otherwise it is relative to the time present time.
  * @returns No explicit return.
  */
 template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
@@ -207,7 +223,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::setNextTrigger(
 }
 
 /**
- * Set the timers for all scheduled tasks and  reactions.
+ * Set the timers for all scheduled tasks and reactions.
  * 
  * The `.begin()` method should be called ONCE, AFTER all event hooks are
  * added (via `addSchedule()` and `addReaction()`),
@@ -220,7 +236,7 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::setNextTrigger(
  * @returns No explicit return.
  */
 template <int8_t T_MAX, int8_t R_MAX, typename TDur_t, typename TWait_t>
-void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
+unsigned long TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
 
     // note that there is a common reference time
     unsigned long now = millis(); 
@@ -233,6 +249,8 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::begin(){
     for (i = 0; i <= last_rct; i++){
         rct_nextTrigs[i] += now;
     }
+
+    return now;
 
 };
 
@@ -265,9 +283,13 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::run(){
     // then execute reaction that are already triggered
     for (i = 0; i <= last_rct; i++){
         if (
+            // (0x01 << (i%8)) is a bitmask with a single 1 at i%8 position
+            // the & produces a byte where only the i%8 bit can be 1
             (( rct_areTrigged[i/8] & (0x01 << (i%8)) ) != 0) &&
             (rct_nextCalls[i] < now)
         ) {
+            // ~(0x01 << (i%8)) is a bitmask with a single 0 at i%8 position
+            // the &= then set the i%8 bit to 0
             rct_areTrigged[i/8] &= ~(0x01 << (i%8));
             // callback is last to allow for self-manipulation
             (* rct_calls[i])();
@@ -286,6 +308,8 @@ void TinyEvents<T_MAX, R_MAX, TDur_t, TWait_t>::run(){
                 // else register the reaction to run
                 rct_nextTrigs[i] = now + (unsigned long) rct_tTimeouts[i];
                 rct_nextCalls[i] = now + (unsigned long) rct_tDelays[i];
+                // (0x01 << (i%8)) is a bitmask with a single 1 at i%8 position
+                // the |= then set the i%8 bit to 1
                 rct_areTrigged[i/8] |= (0x01 << (i%8));
             }
         }
